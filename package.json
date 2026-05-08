@@ -1,0 +1,43 @@
+{
+    "name": "magento-helper",
+    "displayName": "Magento Helper",
+    "description": "Goto definition for Magento 2: referenceContainer/Block, controller-to-layout, plugin target",
+    "version": "0.0.5",
+    "publisher": "neil",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": ["Other"],
+    "activationEvents": [
+        "onLanguage:xml",
+        "onLanguage:php"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            { "command": "magentoHelper.rebuildIndex", "title": "Magento Helper: Rebuild Index" },
+            { "command": "magentoHelper.openLayoutFiles", "title": "Magento Helper: Open Layout Files" },
+            { "command": "magentoHelper.gotoLocations", "title": "Magento Helper: Goto Locations" }
+        ],
+        "configuration": {
+            "title": "Magento Helper",
+            "properties": {
+                "magentoHelper.searchPaths": {
+                    "type": "array",
+                    "default": ["app/code", "app/design", "vendor/magento", "vendor/hyva-themes", "generated/code"],
+                    "description": "Directories (relative to workspace) to scan for Magento XML/PHP files"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "@types/vscode": "^1.75.0",
+        "typescript": "^5.4.0"
+    }
+}

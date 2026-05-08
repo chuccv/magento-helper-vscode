@@ -42,6 +42,11 @@ export function activate(context: vscode.ExtensionContext) {
         status.tooltip = `Magento Helper error: ${(err as Error)?.message ?? err}\nClick to retry.`;
         status.show();
     };
+    const setIdle = () => {
+        status.text = '$(circle-large-outline) Magento: not indexed';
+        status.tooltip = 'Magento Helper has no index yet. Click to build.';
+        status.show();
+    };
 
     const buildAll = async () => {
         setIndexing();
@@ -59,26 +64,8 @@ export function activate(context: vscode.ExtensionContext) {
         }
     };
 
-    buildAll();
-
-    // Watchers
-    const layoutWatcher = vscode.workspace.createFileSystemWatcher('**/{layout,page_layout}/**/*.xml');
-    layoutWatcher.onDidChange(uri => layoutIndex.refreshFile(uri));
-    layoutWatcher.onDidCreate(uri => layoutIndex.refreshFile(uri));
-    layoutWatcher.onDidDelete(uri => layoutIndex.removeFile(uri));
-    context.subscriptions.push(layoutWatcher);
-
-    const diWatcher = vscode.workspace.createFileSystemWatcher('**/etc/**/di.xml');
-    diWatcher.onDidChange(() => pluginIndex.build());
-    diWatcher.onDidCreate(() => pluginIndex.build());
-    diWatcher.onDidDelete(() => pluginIndex.build());
-    context.subscriptions.push(diWatcher);
-
-    const routesWatcher = vscode.workspace.createFileSystemWatcher('**/etc/**/routes.xml');
-    routesWatcher.onDidChange(() => routesIndex.build());
-    routesWatcher.onDidCreate(() => routesIndex.build());
-    routesWatcher.onDidDelete(() => routesIndex.build());
-    context.subscriptions.push(routesWatcher);
+    // Manual mode: do NOT auto-build on activate; user clicks status bar or runs command.
+    setIdle();
 
     // Providers
     context.subscriptions.push(

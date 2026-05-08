@@ -2,7 +2,7 @@
     "name": "magento-helper",
     "displayName": "Magento Helper",
     "description": "Goto definition for Magento 2: referenceContainer/Block, controller-to-layout, plugin target",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "publisher": "chuccv",
     "license": "MIT",
     "repository": {

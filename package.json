@@ -3,11 +3,30 @@
     "displayName": "Magento Helper",
     "description": "Goto definition for Magento 2: referenceContainer/Block, controller-to-layout, plugin target",
     "version": "0.0.5",
-    "publisher": "neil",
+    "publisher": "chuccv",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/chuccv/magento-helper-vscode.git"
+    },
+    "bugs": {
+        "url": "https://github.com/chuccv/magento-helper-vscode/issues"
+    },
     "engines": {
         "vscode": "^1.75.0"
     },
-    "categories": ["Other"],
+    "categories": [
+        "Other",
+        "Programming Languages"
+    ],
+    "keywords": [
+        "magento",
+        "magento2",
+        "php",
+        "xml",
+        "adobe commerce"
+    ],
+    "icon": "images/icon.png",
     "activationEvents": [
         "onLanguage:xml",
         "onLanguage:php"
@@ -15,16 +34,31 @@
     "main": "./out/extension.js",
     "contributes": {
         "commands": [
-            { "command": "magentoHelper.rebuildIndex", "title": "Magento Helper: Rebuild Index" },
-            { "command": "magentoHelper.openLayoutFiles", "title": "Magento Helper: Open Layout Files" },
-            { "command": "magentoHelper.gotoLocations", "title": "Magento Helper: Goto Locations" }
+            {
+                "command": "magentoHelper.rebuildIndex",
+                "title": "Magento Helper: Rebuild Index"
+            },
+            {
+                "command": "magentoHelper.openLayoutFiles",
+                "title": "Magento Helper: Open Layout Files"
+            },
+            {
+                "command": "magentoHelper.gotoLocations",
+                "title": "Magento Helper: Goto Locations"
+            }
         ],
         "configuration": {
             "title": "Magento Helper",
             "properties": {
                 "magentoHelper.searchPaths": {
                     "type": "array",
-                    "default": ["app/code", "app/design", "vendor/magento", "vendor/hyva-themes", "generated/code"],
+                    "default": [
+                        "app/code",
+                        "app/design",
+                        "vendor/magento",
+                        "vendor/hyva-themes",
+                        "generated/code"
+                    ],
                     "description": "Directories (relative to workspace) to scan for Magento XML/PHP files"
                 }
             }

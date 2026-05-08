@@ -57,10 +57,66 @@ Click the status bar item or run **`Magento Helper: Rebuild Index`** when you ne
 
 ## Installation
 
-Download the `.vsix` from [GitHub Releases](https://github.com/chuccv/magento-helper-vscode/releases) and install:
+### Option A — Install from a pre-built `.vsix` (recommended for users)
+
+1. Download the latest `magento-helper-x.y.z.vsix` from
+   [GitHub Releases](https://github.com/chuccv/magento-helper-vscode/releases)
+   (or get it from the team).
+2. Install:
+   ```bash
+   code --install-extension magento-helper-x.y.z.vsix
+   ```
+3. Reload VS Code (`Ctrl+Shift+P` → **Developer: Reload Window**).
+4. Open the status bar item `○ Magento: not indexed` to build the index.
+
+### Option B — Build from source (for contributors / latest unreleased changes)
+
+Requires Node.js 18+.
 
 ```bash
-code --install-extension magento-helper-x.y.z.vsix
+git clone git@github.com:chuccv/magento-helper-vscode.git
+cd magento-helper-vscode
+npm install
+npx tsc -p ./
+npx --yes @vscode/vsce package --allow-missing-repository --skip-license
+code --install-extension magento-helper-*.vsix
+```
+
+After source changes:
+
+```bash
+npx tsc -p ./
+npx --yes @vscode/vsce package --allow-missing-repository --skip-license
+code --install-extension magento-helper-*.vsix --force
+```
+
+Then reload VS Code window.
+
+### Option C — Run unpackaged (live debug)
+
+For active development with hot reload:
+
+```bash
+git clone git@github.com:chuccv/magento-helper-vscode.git
+cd magento-helper-vscode
+npm install
+code .
+# Press F5 in VS Code to launch a new "Extension Development Host" window
+# Edit src/*.ts, the host window auto-reloads on save (after re-running tsc)
+```
+
+## Updating
+
+The extension does not auto-update (not on the Marketplace yet). To upgrade:
+
+1. Pull the latest `.vsix` from Releases (or rebuild from source).
+2. `code --install-extension magento-helper-<new-version>.vsix --force`
+3. Reload the window.
+
+## Uninstall
+
+```bash
+code --uninstall-extension chuccv.magento-helper
 ```
 
 ## License

@@ -2,7 +2,7 @@
     "name": "magento-helper",
     "displayName": "Magento Helper",
     "description": "Goto definition for Magento 2: referenceContainer/Block, controller-to-layout, plugin target",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "publisher": "chuccv",
     "license": "MIT",
     "repository": {
@@ -45,6 +45,10 @@
             {
                 "command": "magentoHelper.gotoLocations",
                 "title": "Magento Helper: Goto Locations"
+            },
+            {
+                "command": "magentoHelper.generateUrnCatalog",
+                "title": "Magento Helper: Generate URN Catalog"
             }
         ],
         "configuration": {

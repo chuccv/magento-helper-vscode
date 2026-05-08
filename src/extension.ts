@@ -8,6 +8,7 @@ import { PluginLensProvider } from './pluginLens';
 import { XmlClassDefinitionProvider } from './xmlClassDefinitionProvider';
 import { XmlClassRefIndex } from './xmlClassRefIndex';
 import { PhpUsageLensProvider } from './phpUsageLens';
+import { generateUrnCatalog } from './urnCatalog';
 
 export function activate(context: vscode.ExtensionContext) {
     const layoutIndex = new LayoutIndex();
@@ -106,6 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Commands
     context.subscriptions.push(
         vscode.commands.registerCommand('magentoHelper.rebuildIndex', () => buildAll()),
+        vscode.commands.registerCommand('magentoHelper.generateUrnCatalog', () => generateUrnCatalog()),
         vscode.commands.registerCommand('magentoHelper.openLayoutFiles', async (files: string[]) => {
             if (files.length === 1) {
                 const doc = await vscode.workspace.openTextDocument(files[0]);

@@ -2,24 +2,38 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LayoutIndex } from './layoutIndex';
+import { ConfigPathIndex } from './configPathIndex';
 
 /**
  * In XML files, Ctrl+Click on:
  *   - FQCN class name  → PHP file
  *   - Module_Name::path  → template / static asset file
  *   - method="methodName" inside <action>  → PHP method definition
+ *   - ifconfig="section/group/field"  → system.xml definition
  */
 export class XmlClassDefinitionProvider implements vscode.DefinitionProvider {
-    constructor(private layoutIndex: LayoutIndex) {}
+    constructor(private layoutIndex: LayoutIndex, private configPathIndex: ConfigPathIndex) {}
 
     public async provideDefinition(
         document: vscode.TextDocument,
         position: vscode.Position
     ): Promise<vscode.Definition | undefined> {
-        // 1. method="..." inside <action> → goto PHP method
-        // Only trigger when cursor is strictly inside the value of a method="<value>" attribute.
         const lineText = document.lineAt(position.line).text;
         const col = position.character;
+
+        // 1. ifconfig="section/group/field" → goto system.xml
+        const ifconfigRe = /\bifconfig=["']([^"']*)["']/g;
+        let ic: RegExpExecArray | null;
+        while ((ic = ifconfigRe.exec(lineText)) !== null) {
+            const valueStart = lineText.indexOf(ic[1], ic.index);
+            const valueEnd = valueStart + ic[1].length;
+            if (col >= valueStart && col <= valueEnd) {
+                const loc = this.configPathIndex.lookup(ic[1]);
+                if (loc) return new vscode.Location(vscode.Uri.file(loc.file), new vscode.Position(loc.line, 0));
+                return undefined;
+            }
+        }
+        // 2. method="..." inside <action> → goto PHP method
         const methodAttrRe = /\bmethod=["']([^"']*)["']/g;
         let ma: RegExpExecArray | null;
         while ((ma = methodAttrRe.exec(lineText)) !== null) {

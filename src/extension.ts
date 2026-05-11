@@ -11,6 +11,7 @@ import { XmlClassDefinitionProvider } from './xmlClassDefinitionProvider';
 import { XmlClassRefIndex } from './xmlClassRefIndex';
 import { PhpUsageLensProvider } from './phpUsageLens';
 import { generateUrnCatalog } from './urnCatalog';
+import { ConfigPathIndex } from './configPathIndex';
 
 const CACHE_VERSION = 1;
 
@@ -19,6 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
     const routesIndex = new RoutesIndex();
     const pluginIndex = new PluginIndex();
     const refIndex = new XmlClassRefIndex();
+    const configPathIndex = new ConfigPathIndex();
 
     // Status bar: shows indexing state + counts
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -45,6 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
                 routes: routesIndex.serialize(),
                 plugin: pluginIndex.serialize(),
                 ref: refIndex.serialize(),
+                configPath: configPathIndex.serialize(),
             });
             fs.writeFileSync(cachePath, data, 'utf8');
         } catch {
@@ -63,6 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
             routesIndex.deserialize(data.routes);
             pluginIndex.deserialize(data.plugin);
             refIndex.deserialize(data.ref);
+            if (data.configPath) configPathIndex.deserialize(data.configPath);
             indexedAt = data.indexedAt ?? Date.now();
             return true;
         } catch {
@@ -103,7 +107,8 @@ export function activate(context: vscode.ExtensionContext) {
                 layoutIndex.build(true),
                 routesIndex.build(),
                 pluginIndex.build(),
-                refIndex.build()
+                refIndex.build(),
+                configPathIndex.build()
             ]);
             indexedAt = Date.now();
             stale = false;
@@ -148,7 +153,7 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         vscode.languages.registerDefinitionProvider(
             { language: 'xml' },
-            new XmlClassDefinitionProvider(layoutIndex)
+            new XmlClassDefinitionProvider(layoutIndex, configPathIndex)
         ),
         vscode.languages.registerCodeLensProvider(
             { language: 'php' },

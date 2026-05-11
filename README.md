@@ -9,13 +9,25 @@ VS Code extension that adds Magento 2-aware navigation features missing from gen
 - **Class FQCN in any XML attribute** → resolves the class file under `app/code/`, `generated/code/` (factories, proxies, interceptors), or `vendor/`.
 
 ### PHP → references (CodeLens above class)
-- **`N XML usages (di:3, layout:1, events:1)`** — peek every XML file referencing the class.
+- **`N usages (di:3, layout:1, phtml:1)`** — peek every XML config file and `.phtml` template referencing the class.
+- `.phtml` patterns detected: `use Vendor\Foo\Bar;`, `Vendor\Foo\Bar::class`, `Vendor\Foo\Bar::method(`, `new Vendor\Foo\Bar(`. Useful for tracking ViewModels referenced directly from templates.
 
 ### Controller → layout
 CodeLens on controller class shows the matching layout handle file(s) (`{frontName}_{controller}_{action}`).
 
 ### Plugin → target method
 CodeLens above `before*` / `after*` / `around*` methods links to the corresponding method on the target class declared in `di.xml`.
+
+### Magento CLI integration
+Run `bin/magento` commands directly from VS Code.
+
+- **Command Palette**: `M2: Run CLI Command…` (free-form), `M2: Run Favorite CLI Command…` (recent/favorites).
+- **Pre-registered commands** under category **`M2 CLI`** — searchable in Command Palette: `cache:flush`, `cache:clean`, `indexer:reindex`, `setup:upgrade`, `setup:di:compile`, `setup:static-content:deploy`, `deploy:mode:set`, `maintenance:enable/disable`, `module:enable/disable`, `config:set/show`, `cron:run`, `queue:consumers:*`, `catalog:images:resize`, and more.
+- **Two run modes**:
+  - **Terminal** (default) — opens an integrated terminal so you can interact with prompts.
+  - **Silent** — runs in background, streams output to the `Magento CLI` Output Channel, shows progress in status bar. Use `M2: Run CLI Command (silent, log to output)…`.
+- **DDEV auto-detect**: if `.ddev/config.yaml` exists at workspace root, the extension uses `ddev magento` automatically. Override via `magentoHelper.cli.command`.
+- **Status bar**: shows current deploy mode (`developer` / `production` / `default`) and maintenance state. Click to refresh.
 
 ### URN Catalog Generator
 Run **`Magento Helper: Generate URN Catalog`** to scan all `.xsd` files and build an OASIS XML catalog at `.vscode/magento-urn-catalog-oasis.xml`.
@@ -47,7 +59,7 @@ Click the status bar item or run **`Magento Helper: Rebuild Index`** when you ne
 | After `composer install` / `composer update` | New or changed PHP/XML files in `vendor/` |
 | After pulling changes that add/remove modules | New routes, plugins, layout blocks, or class references |
 
-Files that mark the index stale on save: layout XML (`layout/*.xml`, `page_layout/*.xml`), `di.xml`, `routes.xml`, `events.xml`, `webapi.xml`, `system.xml`, `acl.xml`, and any `.php` file.
+Files that mark the index stale on save: layout XML (`layout/*.xml`, `page_layout/*.xml`), `di.xml`, `routes.xml`, `events.xml`, `webapi.xml`, `system.xml`, `acl.xml`, and any `.php` or `.phtml` file.
 
 Features that **do not need the index** (work immediately, no rebuild required):
 
@@ -78,14 +90,30 @@ Features that **require the index** to be built:
     "vendor/magento",
     "vendor/hyva-themes",
     "generated/code"
-  ]
+  ],
+
+  // Magento CLI integration
+  "magentoHelper.cli.command": "bin/magento",            // or "ddev magento", "docker compose exec php bin/magento"
+  "magentoHelper.cli.autoDetectDdev": true,              // auto-switch to `ddev magento` when .ddev/config.yaml exists
+  "magentoHelper.cli.cwd": "",                           // empty = workspace root
+  "magentoHelper.cli.defaultRunMode": "terminal",        // "terminal" | "silent"
+  "magentoHelper.cli.statusBar.enabled": true,
+  "magentoHelper.cli.statusBar.refreshIntervalSec": 60
 }
 ```
 
 ## Commands
 
+Indexing & catalog:
 - `Magento Helper: Rebuild Index`
 - `Magento Helper: Generate URN Catalog`
+
+Magento CLI:
+- `M2: Run CLI Command…` / `M2: Run Favorite CLI Command…`
+- `M2: Run CLI Command (silent, log to output)…` / `M2: Run Favorite CLI Command (silent)…`
+- `M2: Open CLI Log`
+- `M2: Refresh CLI Catalog` / `M2: Refresh CLI Status`
+- Plus 50+ pre-registered commands under category `M2 CLI` (e.g. `M2 CLI: cache:flush`, `M2 CLI: setup:upgrade`, `M2 CLI: indexer:reindex`).
 
 ## Installation
 

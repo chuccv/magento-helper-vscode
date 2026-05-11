@@ -11,13 +11,25 @@ Extension VS Code bổ sung tính năng điều hướng dành riêng cho Magent
 - **`method="..."` bên trong `<action>`** → nhảy tới method PHP của block class tương ứng (yêu cầu đã build Index).
 
 ### PHP → tham chiếu (CodeLens phía trên class)
-- **`N XML usages (di:3, layout:1, events:1)`** — xem toàn bộ file XML đang tham chiếu tới class đó.
+- **`N usages (di:3, layout:1, phtml:1)`** — xem toàn bộ file XML cấu hình và file `.phtml` đang tham chiếu tới class đó.
+- Pattern phát hiện trong `.phtml`: `use Vendor\Foo\Bar;`, `Vendor\Foo\Bar::class`, `Vendor\Foo\Bar::method(`, `new Vendor\Foo\Bar(`. Hữu ích để truy vết ViewModel được dùng trực tiếp trong template.
 
 ### Controller → layout
 CodeLens trên controller class hiển thị file layout handle tương ứng (`{frontName}_{controller}_{action}`).
 
 ### Plugin → target method
 CodeLens phía trên các method `before*` / `after*` / `around*` liên kết tới method gốc trên target class được khai báo trong `di.xml`.
+
+### Tích hợp Magento CLI
+Chạy lệnh `bin/magento` trực tiếp từ VS Code.
+
+- **Command Palette**: `M2: Run CLI Command…` (nhập tự do), `M2: Run Favorite CLI Command…` (lệnh gần đây / yêu thích).
+- **Lệnh đã đăng ký sẵn** dưới category **`M2 CLI`** — search trong Command Palette: `cache:flush`, `cache:clean`, `indexer:reindex`, `setup:upgrade`, `setup:di:compile`, `setup:static-content:deploy`, `deploy:mode:set`, `maintenance:enable/disable`, `module:enable/disable`, `config:set/show`, `cron:run`, `queue:consumers:*`, `catalog:images:resize`, v.v...
+- **Hai chế độ chạy**:
+  - **Terminal** (mặc định) — mở integrated terminal để có thể tương tác với prompt.
+  - **Silent** — chạy nền, stream output vào Output Channel `Magento CLI`, hiển thị tiến độ ở status bar. Dùng `M2: Run CLI Command (silent, log to output)…`.
+- **Tự động phát hiện DDEV**: nếu có `.ddev/config.yaml` ở workspace root, extension dùng `ddev magento` tự động. Có thể override qua `magentoHelper.cli.command`.
+- **Status bar**: hiển thị deploy mode hiện tại (`developer` / `production` / `default`) và trạng thái maintenance. Click để refresh.
 
 ### URN Catalog Generator
 Chạy **`Magento Helper: Generate URN Catalog`** để quét tất cả file `.xsd` và tạo OASIS XML catalog tại `.vscode/magento-urn-catalog-oasis.xml`.  
@@ -53,7 +65,7 @@ Click vào status bar hoặc chạy **`Magento Helper: Rebuild Index`** khi cầ
 | Sau `composer install` / `composer update` | Có file PHP/XML mới hoặc thay đổi trong `vendor/` |
 | Sau khi pull code thêm/xóa module | Có route, plugin, layout block, hoặc class reference mới |
 
-File nào khi lưu sẽ đánh dấu index là **stale**: layout XML (`layout/*.xml`, `page_layout/*.xml`), `di.xml`, `routes.xml`, `events.xml`, `webapi.xml`, `system.xml`, `acl.xml`, và mọi file `.php`.
+File nào khi lưu sẽ đánh dấu index là **stale**: layout XML (`layout/*.xml`, `page_layout/*.xml`), `di.xml`, `routes.xml`, `events.xml`, `webapi.xml`, `system.xml`, `acl.xml`, và mọi file `.php` hoặc `.phtml`.
 
 ### Tính năng KHÔNG cần Index (hoạt động ngay, không cần rebuild):
 
@@ -86,14 +98,30 @@ File nào khi lưu sẽ đánh dấu index là **stale**: layout XML (`layout/*.
     "vendor/magento",
     "vendor/hyva-themes",
     "generated/code"
-  ]
+  ],
+
+  // Tích hợp Magento CLI
+  "magentoHelper.cli.command": "bin/magento",            // hoặc "ddev magento", "docker compose exec php bin/magento"
+  "magentoHelper.cli.autoDetectDdev": true,              // tự chuyển sang `ddev magento` khi có .ddev/config.yaml
+  "magentoHelper.cli.cwd": "",                           // rỗng = workspace root
+  "magentoHelper.cli.defaultRunMode": "terminal",        // "terminal" | "silent"
+  "magentoHelper.cli.statusBar.enabled": true,
+  "magentoHelper.cli.statusBar.refreshIntervalSec": 60
 }
 ```
 
 ## Lệnh
 
+Index & catalog:
 - `Magento Helper: Rebuild Index`
 - `Magento Helper: Generate URN Catalog`
+
+Magento CLI:
+- `M2: Run CLI Command…` / `M2: Run Favorite CLI Command…`
+- `M2: Run CLI Command (silent, log to output)…` / `M2: Run Favorite CLI Command (silent)…`
+- `M2: Open CLI Log`
+- `M2: Refresh CLI Catalog` / `M2: Refresh CLI Status`
+- Thêm 50+ lệnh đã đăng ký sẵn dưới category `M2 CLI` (ví dụ `M2 CLI: cache:flush`, `M2 CLI: setup:upgrade`, `M2 CLI: indexer:reindex`).
 
 ---
 

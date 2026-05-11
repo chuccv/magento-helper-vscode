@@ -12,6 +12,13 @@ import { XmlClassRefIndex } from './xmlClassRefIndex';
 import { PhpUsageLensProvider } from './phpUsageLens';
 import { generateUrnCatalog } from './urnCatalog';
 import { ConfigPathIndex } from './configPathIndex';
+import { CliExecutor } from './cli/cliExecutor';
+import { CliStatusBar } from './cli/cliStatusBar';
+import { showRunPicker, showFavoritePicker, runCommandByName } from './cli/cliCommandPicker';
+import { refreshCatalog, CORE_COMMANDS } from './cli/cliCatalog';
+import { getCliOutputChannel } from './cli/cliOutputChannel';
+
+const CLI_CMD_PREFIX = 'magentoHelper.cli.cmd:';
 
 const CACHE_VERSION = 1;
 
@@ -145,6 +152,12 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    // Magento CLI integration (independent of indexing)
+    const cliExecutor = new CliExecutor();
+    const cliStatusBar = new CliStatusBar(cliExecutor);
+    cliStatusBar.start(context);
+    context.subscriptions.push(cliStatusBar);
+
     // Providers
     context.subscriptions.push(
         vscode.languages.registerDefinitionProvider(
@@ -185,6 +198,17 @@ export function activate(context: vscode.ExtensionContext) {
                 await vscode.window.showTextDocument(doc);
             }
         }),
+        vscode.commands.registerCommand('magentoHelper.cli.run', () => showRunPicker(context, cliExecutor)),
+        vscode.commands.registerCommand('magentoHelper.cli.runFavorite', () => showFavoritePicker(context, cliExecutor)),
+        vscode.commands.registerCommand('magentoHelper.cli.refreshCatalog', () => refreshCatalog(context, cliExecutor)),
+        vscode.commands.registerCommand('magentoHelper.cli.refreshStatus', () => cliStatusBar.refresh()),
+        vscode.commands.registerCommand('magentoHelper.cli.runSilent', () => showRunPicker(context, cliExecutor, 'silent')),
+        vscode.commands.registerCommand('magentoHelper.cli.runFavoriteSilent', () => showFavoritePicker(context, cliExecutor, 'silent')),
+        vscode.commands.registerCommand('magentoHelper.cli.openLog', () => getCliOutputChannel().show(true)),
+        ...CORE_COMMANDS.map(c =>
+            vscode.commands.registerCommand(CLI_CMD_PREFIX + c.name,
+                () => runCommandByName(context, cliExecutor, c.name))
+        ),
         vscode.commands.registerCommand('magentoHelper.gotoLocations', async (locations: vscode.Location[]) => {
             if (!locations || locations.length === 0) return;
             if (locations.length === 1) {

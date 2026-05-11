@@ -2,7 +2,7 @@
     "name": "magento-helper",
     "displayName": "Magento Helper",
     "description": "Goto definition for Magento 2: referenceContainer/Block, controller-to-layout, plugin target",
-    "version": "0.0.9",
+    "version": "0.0.16",
     "publisher": "chuccv",
     "license": "MIT",
     "repository": {
@@ -29,7 +29,8 @@
     "icon": "images/icon.png",
     "activationEvents": [
         "onLanguage:xml",
-        "onLanguage:php"
+        "onLanguage:php",
+        "onStartupFinished"
     ],
     "main": "./out/extension.js",
     "contributes": {
@@ -49,6 +50,391 @@
             {
                 "command": "magentoHelper.generateUrnCatalog",
                 "title": "Magento Helper: Generate URN Catalog"
+            },
+            {
+                "command": "magentoHelper.cli.run",
+                "title": "Run CLI Command…",
+                "category": "M2"
+            },
+            {
+                "command": "magentoHelper.cli.runFavorite",
+                "title": "Run Favorite CLI Command…",
+                "category": "M2"
+            },
+            {
+                "command": "magentoHelper.cli.runSilent",
+                "title": "Run CLI Command (silent, log to output)…",
+                "category": "M2"
+            },
+            {
+                "command": "magentoHelper.cli.runFavoriteSilent",
+                "title": "Run Favorite CLI Command (silent)…",
+                "category": "M2"
+            },
+            {
+                "command": "magentoHelper.cli.openLog",
+                "title": "Open CLI Log",
+                "category": "M2"
+            },
+            {
+                "command": "magentoHelper.cli.refreshCatalog",
+                "title": "Refresh CLI Catalog",
+                "category": "M2"
+            },
+            {
+                "command": "magentoHelper.cli.refreshStatus",
+                "title": "Refresh CLI Status",
+                "category": "M2"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:cache:flush",
+                "title": "cache:flush — Flushes cache storage used by cache types",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:cache:clean",
+                "title": "cache:clean — Cleans cache type(s)",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:cache:enable",
+                "title": "cache:enable — Enables cache type(s)",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:cache:disable",
+                "title": "cache:disable — Disables cache type(s)",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:cache:status",
+                "title": "cache:status — Checks cache status",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:indexer:reindex",
+                "title": "indexer:reindex — Reindexes data",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:indexer:status",
+                "title": "indexer:status — Shows status of indexer",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:indexer:info",
+                "title": "indexer:info — Shows allowed indexers",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:indexer:reset",
+                "title": "indexer:reset — Resets indexer status to invalid",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:indexer:set-mode",
+                "title": "indexer:set-mode — Sets index mode type",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:indexer:show-mode",
+                "title": "indexer:show-mode — Shows mode of indexer",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:setup:upgrade",
+                "title": "setup:upgrade — Upgrades the Magento application, DB data, and schema",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:setup:di:compile",
+                "title": "setup:di:compile — Generates DI configuration and all missing classes",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:setup:static-content:deploy",
+                "title": "setup:static-content:deploy — Deploys static view files",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:setup:db:status",
+                "title": "setup:db:status — Checks if DB schema or data requires upgrade",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:setup:db-schema:upgrade",
+                "title": "setup:db-schema:upgrade — Installs and upgrades the DB schema",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:setup:db-data:upgrade",
+                "title": "setup:db-data:upgrade — Installs and upgrades data in the DB",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:setup:store-config:set",
+                "title": "setup:store-config:set — Installs the store configuration",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:setup:config:set",
+                "title": "setup:config:set — Creates or modifies the deployment configuration",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:deploy:mode:show",
+                "title": "deploy:mode:show — Displays current application mode",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:deploy:mode:set",
+                "title": "deploy:mode:set — Sets the application mode",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:maintenance:enable",
+                "title": "maintenance:enable — Enables maintenance mode",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:maintenance:disable",
+                "title": "maintenance:disable — Disables maintenance mode",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:maintenance:status",
+                "title": "maintenance:status — Displays maintenance mode status",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:maintenance:allow-ips",
+                "title": "maintenance:allow-ips — Sets maintenance mode exempt IPs",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:module:enable",
+                "title": "module:enable — Enables specified modules",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:module:disable",
+                "title": "module:disable — Disables specified modules",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:module:status",
+                "title": "module:status — Displays status of modules",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:module:uninstall",
+                "title": "module:uninstall — Uninstalls modules",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:admin:user:create",
+                "title": "admin:user:create — Creates an administrator",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:admin:user:unlock",
+                "title": "admin:user:unlock — Unlocks an admin account",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:config:set",
+                "title": "config:set — Changes system configuration",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:config:show",
+                "title": "config:show — Shows configuration value",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:config:sensitive:set",
+                "title": "config:sensitive:set — Sets sensitive configuration values",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:app:config:dump",
+                "title": "app:config:dump — Creates dump of application",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:app:config:import",
+                "title": "app:config:import — Imports data from shared configuration files",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:app:config:status",
+                "title": "app:config:status — Checks if application config is up to date",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:cron:run",
+                "title": "cron:run — Runs jobs by schedule",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:cron:install",
+                "title": "cron:install — Generates and installs crontab for current user",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:cron:remove",
+                "title": "cron:remove — Removes Magento crontab",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:queue:consumers:list",
+                "title": "queue:consumers:list — Lists all available message queue consumers",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:queue:consumers:start",
+                "title": "queue:consumers:start — Starts a message queue consumer",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:tests:run",
+                "title": "dev:tests:run — Runs tests",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:source-theme:deploy",
+                "title": "dev:source-theme:deploy — Collects and publishes source files for theme",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:di:info",
+                "title": "dev:di:info — Provides information on Dependency Injection configuration",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:urn-catalog:generate",
+                "title": "dev:urn-catalog:generate — Generates the catalog of URNs to *.xsd",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:profiler:enable",
+                "title": "dev:profiler:enable — Enables profiler",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:profiler:disable",
+                "title": "dev:profiler:disable — Disables profiler",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:query-log:enable",
+                "title": "dev:query-log:enable — Enables DB query logging",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:query-log:disable",
+                "title": "dev:query-log:disable — Disables DB query logging",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:template-hints:enable",
+                "title": "dev:template-hints:enable — Enables template hints in storefront",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:template-hints:disable",
+                "title": "dev:template-hints:disable — Disables template hints in storefront",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:dev:xml:convert",
+                "title": "dev:xml:convert — Converts XML file using XSL stylesheets",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:catalog:images:resize",
+                "title": "catalog:images:resize — Creates resized product images",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:catalog:product:attributes:cleanup",
+                "title": "catalog:product:attributes:cleanup — Removes unused product attributes",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:customer:hash:upgrade",
+                "title": "customer:hash:upgrade — Upgrade customer hash according to the latest algorithm",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:info:adminuri",
+                "title": "info:adminuri — Displays the Magento Admin URI",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:info:backups:list",
+                "title": "info:backups:list — Prints list of available backup files",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:info:currency:list",
+                "title": "info:currency:list — Displays the list of available currencies",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:info:language:list",
+                "title": "info:language:list — Displays the list of available language locales",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:info:timezone:list",
+                "title": "info:timezone:list — Displays the list of available timezones",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:info:dependencies:show-modules",
+                "title": "info:dependencies:show-modules — Shows number of dependencies on other modules",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:info:dependencies:show-modules-circular",
+                "title": "info:dependencies:show-modules-circular — Shows number of circular dependencies",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:store:list",
+                "title": "store:list — Displays the list of stores",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:store:website:list",
+                "title": "store:website:list — Displays the list of websites",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:theme:uninstall",
+                "title": "theme:uninstall — Uninstalls theme",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:i18n:collect-phrases",
+                "title": "i18n:collect-phrases — Discovers phrases in the codebase",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:i18n:pack",
+                "title": "i18n:pack — Saves language package",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:list",
+                "title": "list — Lists commands",
+                "category": "M2 CLI"
+            },
+            {
+                "command": "magentoHelper.cli.cmd:help",
+                "title": "help — Displays help for a command",
+                "category": "M2 CLI"
             }
         ],
         "configuration": {
@@ -64,6 +450,40 @@
                         "generated/code"
                     ],
                     "description": "Directories (relative to workspace) to scan for Magento XML/PHP files"
+                },
+                "magentoHelper.cli.command": {
+                    "type": "string",
+                    "default": "bin/magento",
+                    "description": "Magento CLI executor prefix. Examples: 'bin/magento', 'ddev magento', 'docker compose exec php bin/magento'."
+                },
+                "magentoHelper.cli.autoDetectDdev": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "If cli.command is the default and a .ddev/config.yaml is present in the workspace root, use 'ddev magento' automatically."
+                },
+                "magentoHelper.cli.defaultRunMode": {
+                    "type": "string",
+                    "enum": [
+                        "terminal",
+                        "silent"
+                    ],
+                    "default": "terminal",
+                    "description": "Default mode for running Magento CLI commands. 'terminal' opens an integrated terminal; 'silent' runs in background, streams to the 'Magento CLI' Output Channel, and shows progress in the status bar."
+                },
+                "magentoHelper.cli.cwd": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Working directory for the Magento CLI. Empty means workspace root. May be absolute or relative to the workspace."
+                },
+                "magentoHelper.cli.statusBar.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show Magento deploy mode and maintenance status in the status bar."
+                },
+                "magentoHelper.cli.statusBar.refreshIntervalSec": {
+                    "type": "number",
+                    "default": 60,
+                    "description": "How often (in seconds) to refresh the Magento status bar. 0 disables periodic refresh."
                 }
             }
         }
@@ -72,7 +492,7 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
-        "dev": "tsc -p ./ && cp -r out ~/.vscode/extensions/chuccv.magento-helper-0.0.9/"
+        "dev": "tsc -p ./ && cp -r out ~/.vscode/extensions/chuccv.magento-helper-0.0.16/"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

@@ -139,6 +139,7 @@ export function activate(context: vscode.ExtensionContext) {
             p.endsWith('/di.xml') || p.endsWith('/routes.xml') || p.endsWith('/events.xml') ||
             p.endsWith('/webapi.xml') || p.endsWith('/system.xml') || p.endsWith('/acl.xml'))) return true;
         if (p.endsWith('.php')) return true;
+        if (p.endsWith('.phtml')) return true;
         return false;
     };
     context.subscriptions.push(

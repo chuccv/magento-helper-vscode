@@ -38,7 +38,7 @@ export class PhpUsageLensProvider implements vscode.CodeLensProvider {
         return [new vscode.CodeLens(
             new vscode.Range(line, 0, line, 0),
             {
-                title: `$(references) ${refs.length} XML usage${refs.length > 1 ? 's' : ''} (${summary})`,
+                title: `$(references) ${refs.length} usage${refs.length > 1 ? 's' : ''} (${summary})`,
                 command: 'magentoHelper.gotoLocations',
                 arguments: [locations]
             }

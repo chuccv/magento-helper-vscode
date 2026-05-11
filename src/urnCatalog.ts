@@ -26,7 +26,7 @@ export async function generateUrnCatalog(): Promise<void> {
     }
     const root = folders[0].uri.fsPath;
 
-    await vscode.window.withProgress(
+    const total = await vscode.window.withProgress(
         { location: vscode.ProgressLocation.Notification, title: 'Generating URN catalog…' },
         async (progress) => {
             const entries: CatalogEntry[] = [];
@@ -47,16 +47,18 @@ export async function generateUrnCatalog(): Promise<void> {
             fs.writeFileSync(catalogPath, out);
 
             await ensureSettingsReference(root, '.vscode/magento-urn-catalog-oasis.xml');
-
-            const choice = await vscode.window.showInformationMessage(
-                `URN catalog generated: ${map.size} entries. Reload window to apply.`,
-                'Reload Window'
-            );
-            if (choice === 'Reload Window') {
-                vscode.commands.executeCommand('workbench.action.reloadWindow');
-            }
+            return map.size;
         }
     );
+
+    // Show result OUTSIDE withProgress so the progress notification dismisses immediately.
+    const choice = await vscode.window.showInformationMessage(
+        `URN catalog generated: ${total} entries. Reload window to apply.`,
+        'Reload Window'
+    );
+    if (choice === 'Reload Window') {
+        vscode.commands.executeCommand('workbench.action.reloadWindow');
+    }
 }
 
 function scan(dir: string, root: string, entries: CatalogEntry[]): void {
@@ -120,17 +122,60 @@ function escapeXml(s: string): string {
     } as Record<string, string>)[c]!);
 }
 
+// Minimal JSONC parser: strips // and /* */ comments and trailing commas,
+// while preserving content inside string literals (so URLs like https:// don't break).
+function parseJsonc(raw: string): Record<string, unknown> {
+    let out = '';
+    let i = 0;
+    let inStr = false;
+    while (i < raw.length) {
+        const c = raw[i];
+        if (inStr) {
+            out += c;
+            if (c === '\\' && i + 1 < raw.length) { out += raw[i + 1]; i += 2; continue; }
+            if (c === '"') inStr = false;
+            i++;
+            continue;
+        }
+        if (c === '"') { inStr = true; out += c; i++; continue; }
+        if (c === '/' && raw[i + 1] === '/') {
+            while (i < raw.length && raw[i] !== '\n') i++;
+            continue;
+        }
+        if (c === '/' && raw[i + 1] === '*') {
+            i += 2;
+            while (i < raw.length && !(raw[i] === '*' && raw[i + 1] === '/')) i++;
+            i += 2;
+            continue;
+        }
+        out += c;
+        i++;
+    }
+    // Remove trailing commas before } or ]
+    out = out.replace(/,(\s*[}\]])/g, '$1');
+    return JSON.parse(out);
+}
+
 async function ensureSettingsReference(root: string, relativeCatalog: string): Promise<void> {
+    // Prefer VS Code's configuration API — it preserves comments/formatting in JSONC.
+    try {
+        const xmlConfig = vscode.workspace.getConfiguration('xml');
+        const current = xmlConfig.get<string[]>('catalogs') ?? [];
+        if (!current.includes(relativeCatalog)) {
+            const next = [...current, relativeCatalog];
+            await xmlConfig.update('catalogs', next, vscode.ConfigurationTarget.Workspace);
+        }
+        return;
+    } catch {
+        // Fall through to file-based fallback
+    }
+
     const settingsPath = path.join(root, '.vscode', 'settings.json');
     let json: Record<string, unknown> = {};
     if (fs.existsSync(settingsPath)) {
         try {
-            const raw = fs.readFileSync(settingsPath, 'utf8');
-            // Strip JSON comments (settings.json may contain them)
-            const cleaned = raw.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-            json = JSON.parse(cleaned);
+            json = parseJsonc(fs.readFileSync(settingsPath, 'utf8'));
         } catch {
-            // If parse fails, do not overwrite — show warning
             vscode.window.showWarningMessage(
                 'Magento Helper: .vscode/settings.json could not be parsed; ' +
                 `add "xml.catalogs": ["${relativeCatalog}"] manually.`
@@ -142,6 +187,9 @@ async function ensureSettingsReference(root: string, relativeCatalog: string): P
     if (!catalogs.includes(relativeCatalog)) {
         catalogs.push(relativeCatalog);
         json['xml.catalogs'] = catalogs;
+        if (!fs.existsSync(path.dirname(settingsPath))) {
+            fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+        }
         fs.writeFileSync(settingsPath, JSON.stringify(json, null, 2) + '\n');
     }
 }

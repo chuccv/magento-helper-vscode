@@ -23,10 +23,42 @@ The catalog is auto-registered in `.vscode/settings.json` under `xml.catalogs`, 
 
 Pure TypeScript implementation — does **not** depend on `bin/magento` / DDEV / Docker / PHP runtime.
 
-## Indexing
+## When to run Generate URN Catalog
+
+Run **`Magento Helper: Generate URN Catalog`** when:
+
+- First time setting up the project in VS Code (red squiggles on `urn:magento:...` in XML files).
+- After installing or updating Magento modules that ship `.xsd` schema files (`composer install`, `composer update`).
+- After adding a custom module that defines its own `.xsd`.
+
+You do **not** need to re-run it when editing PHP or XML layout files — only when `.xsd` files change.
+
+After running, reload the window once (`Ctrl+Shift+P` → **Developer: Reload Window**) so the Red Hat XML extension picks up the updated catalog.
+
+## When to rebuild the Index
 
 Indexing is **manual** to avoid slowdowns on large Magento codebases.
 Click the status bar item or run **`Magento Helper: Rebuild Index`** when you need it.
+
+| When | Why |
+|------|-----|
+| First time opening the project | No index exists yet — navigation features are inactive |
+| Status bar shows `⚠ Magento: stale` | An indexable file was saved; Ctrl+Click / CodeLens may return stale results |
+| After `composer install` / `composer update` | New or changed PHP/XML files in `vendor/` |
+| After pulling changes that add/remove modules | New routes, plugins, layout blocks, or class references |
+
+Files that mark the index stale on save: layout XML (`layout/*.xml`, `page_layout/*.xml`), `di.xml`, `routes.xml`, `events.xml`, `webapi.xml`, `system.xml`, `acl.xml`, and any `.php` file.
+
+Features that **do not need the index** (work immediately, no rebuild required):
+
+- Ctrl+Click on a **class FQCN** (e.g. `Magento\Catalog\Model\Product`) → PHP file.
+- Ctrl+Click on a **module asset** (e.g. `Mageplaza_Core::js/splide.min.js`, `Vendor_Module::hyva/bar.phtml`) → file under `view/{area}/{web,templates}/`.
+
+Features that **require the index** to be built:
+
+- Ctrl+Click on `referenceContainer` / `referenceBlock` name → original block/container definition.
+- Ctrl+Click on `method="..."` inside `<action>` → PHP method (needs block `name → class` mapping).
+- CodeLens: controller → layout handle, plugin → target method, class → XML usages.
 
 | Status bar | Meaning |
 |------------|---------|

@@ -15,6 +15,7 @@ export interface NameLocation {
  */
 export class LayoutIndex {
     private byName = new Map<string, NameLocation[]>();
+    private byNameClass = new Map<string, string>(); // block name -> FQCN class
     private fileNames = new Map<string, string[]>(); // file -> names declared (for incremental update)
     private building = false;
 
@@ -23,6 +24,7 @@ export class LayoutIndex {
         this.building = true;
         try {
             this.byName.clear();
+            this.byNameClass.clear();
             this.fileNames.clear();
 
             const folders = vscode.workspace.workspaceFolders ?? [];
@@ -63,6 +65,10 @@ export class LayoutIndex {
         return this.byName.get(name) ?? [];
     }
 
+    public lookupClass(name: string): string | null {
+        return this.byNameClass.get(name) ?? null;
+    }
+
     public size(): number { return this.byName.size; }
 
     private async scanDir(dir: string): Promise<void> {
@@ -94,13 +100,16 @@ export class LayoutIndex {
         } catch {
             return;
         }
-        // Match: <container name="X">, <block ... name="X" ...>, <referenceContainer name="X">, <referenceBlock name="X">
-        const re = /<(container|block|referenceContainer|referenceBlock)\b[^>]*?\bname=["']([^"']+)["']/g;
+        // Match opening tags that carry a name attribute (single-line or wrapped)
+        const re = /<(container|block|referenceContainer|referenceBlock)\b([\s\S]*?)(?:\/?>)/g;
         const declaredHere: string[] = [];
         let m: RegExpExecArray | null;
         while ((m = re.exec(content)) !== null) {
             const tag = m[1];
-            const name = m[2];
+            const attrs = m[2];
+            const nameM = /\bname=["']([^"']+)["']/.exec(attrs);
+            if (!nameM) continue;
+            const name = nameM[1];
             const offset = m.index;
             const before = content.substring(0, offset);
             const line = (before.match(/\n/g) ?? []).length;
@@ -110,6 +119,13 @@ export class LayoutIndex {
             list.push(loc);
             this.byName.set(name, list);
             declaredHere.push(name);
+            // Store class FQCN for <block> tags so method="..." can resolve the PHP class
+            if (tag === 'block') {
+                const classM = /\bclass=["']([^"']+)["']/.exec(attrs);
+                if (classM && !this.byNameClass.has(name)) {
+                    this.byNameClass.set(name, classM[1]);
+                }
+            }
         }
         if (declaredHere.length > 0) this.fileNames.set(file, declaredHere);
     }

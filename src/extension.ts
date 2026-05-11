@@ -21,36 +21,37 @@ export function activate(context: vscode.ExtensionContext) {
     status.command = 'magentoHelper.rebuildIndex';
     context.subscriptions.push(status);
 
+    let indexedAt = 0; // 0 = never; otherwise epoch ms of last successful build
+    let stale = false;
+
     const setIndexing = () => {
-        status.text = '$(sync~spin) Magento: indexing…';
-        status.tooltip = 'Magento Helper is scanning XML/PHP. Click to rebuild.';
+        status.text = '$(sync~spin) Magento: indexing';
+        status.tooltip = 'Scanning XML/PHP…';
         status.show();
     };
-    const setReady = (durationMs: number) => {
-        const l = layoutIndex.size();
-        const r = routesIndex.size();
-        const p = pluginIndex.size();
-        const x = refIndex.size();
-        status.text = `$(check) Magento: ${l}L / ${r}R / ${p}P / ${x}X`;
-        status.tooltip = `Magento Helper ready (${durationMs}ms)\n` +
-            `${l} layout names · ${r} route modules · ${p} plugin classes · ${x} class refs\n` +
-            `Click to rebuild index.`;
+    const setReady = () => {
+        status.text = '$(check) Magento: indexed';
+        status.tooltip = 'Index up to date. Click to rebuild.';
         status.show();
     };
     const setError = (err: unknown) => {
-        status.text = '$(error) Magento: index failed';
-        status.tooltip = `Magento Helper error: ${(err as Error)?.message ?? err}\nClick to retry.`;
+        status.text = '$(error) Magento: failed';
+        status.tooltip = `${(err as Error)?.message ?? err}\nClick to retry.`;
         status.show();
     };
     const setIdle = () => {
         status.text = '$(circle-large-outline) Magento: not indexed';
-        status.tooltip = 'Magento Helper has no index yet. Click to build.';
+        status.tooltip = 'Click to build index.';
+        status.show();
+    };
+    const setStale = () => {
+        status.text = '$(warning) Magento: stale';
+        status.tooltip = 'XML/PHP files changed since last index. Click to rebuild.';
         status.show();
     };
 
     const buildAll = async () => {
         setIndexing();
-        const t0 = Date.now();
         try {
             await Promise.all([
                 layoutIndex.build(true),
@@ -58,14 +59,35 @@ export function activate(context: vscode.ExtensionContext) {
                 pluginIndex.build(),
                 refIndex.build()
             ]);
-            setReady(Date.now() - t0);
+            indexedAt = Date.now();
+            stale = false;
+            setReady();
         } catch (e) {
             setError(e);
         }
     };
 
-    // Manual mode: do NOT auto-build on activate; user clicks status bar or runs command.
     setIdle();
+
+    // Mark stale when user saves any indexable file. Do NOT rebuild — flag only.
+    const isIndexable = (uri: vscode.Uri): boolean => {
+        const p = uri.fsPath.replace(/\\/g, '/');
+        if (p.endsWith('.xml') && (p.includes('/layout/') || p.includes('/page_layout/') ||
+            p.endsWith('/di.xml') || p.endsWith('/routes.xml') || p.endsWith('/events.xml') ||
+            p.endsWith('/webapi.xml') || p.endsWith('/system.xml') || p.endsWith('/acl.xml'))) return true;
+        if (p.endsWith('.php')) return true;
+        return false;
+    };
+    context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument(doc => {
+            if (indexedAt === 0) return;
+            if (!isIndexable(doc.uri)) return;
+            if (!stale) {
+                stale = true;
+                setStale();
+            }
+        })
+    );
 
     // Providers
     context.subscriptions.push(
@@ -75,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         vscode.languages.registerDefinitionProvider(
             { language: 'xml' },
-            new XmlClassDefinitionProvider()
+            new XmlClassDefinitionProvider(layoutIndex)
         ),
         vscode.languages.registerCodeLensProvider(
             { language: 'php' },

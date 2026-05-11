@@ -35,6 +35,14 @@ export class RoutesIndex {
 
     public size(): number { return this.byModule.size; }
 
+    public serialize(): object {
+        return { byModule: Array.from(this.byModule.entries()) };
+    }
+
+    public deserialize(data: any): void {
+        this.byModule = new Map(data.byModule ?? []);
+    }
+
     private scanDir(dir: string): void {
         let entries: fs.Dirent[];
         try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }

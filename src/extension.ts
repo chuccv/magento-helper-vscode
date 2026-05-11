@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { LayoutIndex } from './layoutIndex';
 import { LayoutDefinitionProvider } from './layoutDefinitionProvider';
 import { RoutesIndex } from './routesIndex';
@@ -9,6 +11,8 @@ import { XmlClassDefinitionProvider } from './xmlClassDefinitionProvider';
 import { XmlClassRefIndex } from './xmlClassRefIndex';
 import { PhpUsageLensProvider } from './phpUsageLens';
 import { generateUrnCatalog } from './urnCatalog';
+
+const CACHE_VERSION = 1;
 
 export function activate(context: vscode.ExtensionContext) {
     const layoutIndex = new LayoutIndex();
@@ -23,6 +27,48 @@ export function activate(context: vscode.ExtensionContext) {
 
     let indexedAt = 0; // 0 = never; otherwise epoch ms of last successful build
     let stale = false;
+
+    const getCachePath = (): string | null => {
+        if (!context.storageUri) return null;
+        return path.join(context.storageUri.fsPath, 'index-cache.json');
+    };
+
+    const saveCache = (): void => {
+        const cachePath = getCachePath();
+        if (!cachePath) return;
+        try {
+            fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+            const data = JSON.stringify({
+                version: CACHE_VERSION,
+                indexedAt,
+                layout: layoutIndex.serialize(),
+                routes: routesIndex.serialize(),
+                plugin: pluginIndex.serialize(),
+                ref: refIndex.serialize(),
+            });
+            fs.writeFileSync(cachePath, data, 'utf8');
+        } catch {
+            // Non-fatal: cache save failure just means next reload will need manual index
+        }
+    };
+
+    const loadCache = (): boolean => {
+        const cachePath = getCachePath();
+        if (!cachePath) return false;
+        try {
+            const raw = fs.readFileSync(cachePath, 'utf8');
+            const data = JSON.parse(raw);
+            if (data.version !== CACHE_VERSION) return false;
+            layoutIndex.deserialize(data.layout);
+            routesIndex.deserialize(data.routes);
+            pluginIndex.deserialize(data.plugin);
+            refIndex.deserialize(data.ref);
+            indexedAt = data.indexedAt ?? Date.now();
+            return true;
+        } catch {
+            return false;
+        }
+    };
 
     const setIndexing = () => {
         status.text = '$(sync~spin) Magento: indexing';
@@ -61,13 +107,18 @@ export function activate(context: vscode.ExtensionContext) {
             ]);
             indexedAt = Date.now();
             stale = false;
+            saveCache();
             setReady();
         } catch (e) {
             setError(e);
         }
     };
 
-    setIdle();
+    if (loadCache()) {
+        setReady();
+    } else {
+        setIdle();
+    }
 
     // Mark stale when user saves any indexable file. Do NOT rebuild — flag only.
     const isIndexable = (uri: vscode.Uri): boolean => {

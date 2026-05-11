@@ -30,6 +30,14 @@ export class XmlClassRefIndex {
 
     public size(): number { return this.byClass.size; }
 
+    public serialize(): object {
+        return { byClass: Array.from(this.byClass.entries()) };
+    }
+
+    public deserialize(data: any): void {
+        this.byClass = new Map(data.byClass ?? []);
+    }
+
     public lookup(fqcn: string): ClassRef[] {
         const norm = fqcn.replace(/^\\/, '');
         return this.byClass.get(norm) ?? [];

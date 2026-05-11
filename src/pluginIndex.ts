@@ -26,6 +26,14 @@ export class PluginIndex {
 
     public size(): number { return this.byPluginClass.size; }
 
+    public serialize(): object {
+        return { byPluginClass: Array.from(this.byPluginClass.entries()) };
+    }
+
+    public deserialize(data: any): void {
+        this.byPluginClass = new Map(data.byPluginClass ?? []);
+    }
+
     public getTargets(pluginClass: string): string[] {
         // Normalize: di.xml may use leading backslash
         const norm = pluginClass.replace(/^\\/, '');

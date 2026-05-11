@@ -71,6 +71,20 @@ export class LayoutIndex {
 
     public size(): number { return this.byName.size; }
 
+    public serialize(): object {
+        return {
+            byName: Array.from(this.byName.entries()),
+            byNameClass: Array.from(this.byNameClass.entries()),
+            fileNames: Array.from(this.fileNames.entries()),
+        };
+    }
+
+    public deserialize(data: any): void {
+        this.byName = new Map(data.byName ?? []);
+        this.byNameClass = new Map(data.byNameClass ?? []);
+        this.fileNames = new Map(data.fileNames ?? []);
+    }
+
     private async scanDir(dir: string): Promise<void> {
         let entries: fs.Dirent[];
         try {

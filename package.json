@@ -2,7 +2,7 @@
     "name": "magento-helper",
     "displayName": "Magento Helper",
     "description": "Goto definition for Magento 2: referenceContainer/Block, controller-to-layout, plugin target",
-    "version": "0.0.17",
+    "version": "1.0.0",
     "publisher": "chuccv",
     "license": "MIT",
     "repository": {
@@ -492,7 +492,7 @@
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
-        "dev": "tsc -p ./ && cp -r out ~/.vscode/extensions/chuccv.magento-helper-0.0.17/"
+        "dev": "tsc -p ./ && cp -r out ~/.vscode/extensions/chuccv.magento-helper-1.0.0/"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

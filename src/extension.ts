@@ -23,7 +23,9 @@ const CLI_CMD_PREFIX = 'magentoHelper.cli.cmd:';
 
 const CACHE_VERSION = 1;
 
-// Detect a Magento 2 project by the presence of any well-known marker file.
+// Detect a Magento 2 project by the presence of any well-known marker file,
+// OR by a composer.json that requires a magento/product-* package (catches
+// fresh clones before `composer install`).
 function isMagentoProject(): boolean {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders || folders.length === 0) return false;
@@ -41,6 +43,26 @@ function isMagentoProject(): boolean {
                 // ignore
             }
         }
+        if (composerRequiresMagento(root)) return true;
+    }
+    return false;
+}
+
+function composerRequiresMagento(root: string): boolean {
+    const composerPath = path.join(root, 'composer.json');
+    try {
+        if (!fs.existsSync(composerPath)) return false;
+        const json = JSON.parse(fs.readFileSync(composerPath, 'utf8'));
+        const sections = [json.require, json['require-dev']];
+        for (const section of sections) {
+            if (!section || typeof section !== 'object') continue;
+            for (const pkg of Object.keys(section)) {
+                if (/^magento\/product-/.test(pkg)) return true;
+                if (pkg === 'magento/magento2-base') return true;
+            }
+        }
+    } catch {
+        // malformed composer.json → not a reliable signal
     }
     return false;
 }
@@ -124,9 +146,9 @@ export function activate(context: vscode.ExtensionContext) {
         status.tooltip = 'Click to build index.';
         status.show();
     };
-    const setStale = () => {
-        status.text = '$(warning) Magento: stale';
-        status.tooltip = 'XML/PHP files changed since last index. Click to rebuild.';
+    const setStale = (reason?: string) => {
+        status.text = '$(warning) Magento: needs index';
+        status.tooltip = (reason ?? 'XML/PHP files changed since last index.') + '\nClick to rebuild.';
         status.show();
     };
 
@@ -165,15 +187,43 @@ export function activate(context: vscode.ExtensionContext) {
         if (p.endsWith('.phtml')) return true;
         return false;
     };
+    const markStale = (reason?: string): void => {
+        if (indexedAt === 0) return; // never indexed → keep "not indexed" state
+        if (stale) return;
+        stale = true;
+        setStale(reason);
+    };
+
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(doc => {
-            if (indexedAt === 0) return;
             if (!isIndexable(doc.uri)) return;
-            if (!stale) {
-                stale = true;
-                setStale();
-            }
+            markStale();
         })
+    );
+
+    // Watch composer.lock to catch new modules added by `composer install / require`.
+    // Watch module.xml additions/deletions to catch hand-added modules under app/code.
+    // Watch new layout/di/routes XML files to catch new files in already-indexed modules.
+    const composerWatcher = vscode.workspace.createFileSystemWatcher('**/composer.lock');
+    const moduleWatcher = vscode.workspace.createFileSystemWatcher('**/etc/module.xml');
+    const indexedXmlWatcher = vscode.workspace.createFileSystemWatcher(
+        '**/{layout,page_layout}/*.xml'
+    );
+    const diWatcher = vscode.workspace.createFileSystemWatcher(
+        '**/etc/**/{di,routes,events,webapi,system,acl,crontab,indexer,mview}.xml'
+    );
+    const composerReason = 'composer.lock changed — new modules may be installed.';
+    const fileAddedReason = 'New Magento XML file detected.';
+    composerWatcher.onDidChange(() => markStale(composerReason));
+    composerWatcher.onDidCreate(() => markStale(composerReason));
+    moduleWatcher.onDidCreate(() => markStale('New module.xml detected.'));
+    moduleWatcher.onDidDelete(() => markStale('A module.xml was removed.'));
+    indexedXmlWatcher.onDidCreate(() => markStale(fileAddedReason));
+    indexedXmlWatcher.onDidDelete(() => markStale(fileAddedReason));
+    diWatcher.onDidCreate(() => markStale(fileAddedReason));
+    diWatcher.onDidDelete(() => markStale(fileAddedReason));
+    context.subscriptions.push(
+        composerWatcher, moduleWatcher, indexedXmlWatcher, diWatcher
     );
 
     // Magento CLI integration (independent of indexing).

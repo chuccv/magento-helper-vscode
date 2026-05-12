@@ -35,10 +35,12 @@ export class CliStatusBar implements vscode.Disposable {
     private runState: RunState = { running: false };
     private runReg: vscode.Disposable | undefined;
     private runTicker: NodeJS.Timeout | undefined;
+    private isMagentoProject: () => boolean = () => true;
 
     constructor(private executor: CliExecutor) {}
 
-    start(context: vscode.ExtensionContext): void {
+    start(context: vscode.ExtensionContext, isMagentoProject?: () => boolean): void {
+        if (isMagentoProject) this.isMagentoProject = isMagentoProject;
         this.clickReg = vscode.commands.registerCommand(CMD_CLICK, () => this.handleClick());
         context.subscriptions.push(this.clickReg);
 
@@ -61,14 +63,21 @@ export class CliStatusBar implements vscode.Disposable {
         this.applyConfig();
     }
 
+    reevaluate(): void {
+        this.applyConfig();
+    }
+
     private applyConfig(): void {
-        const cfg = vscode.workspace.getConfiguration('magentoHelper.cli.statusBar');
-        const enabled = cfg.get<boolean>('enabled', true);
-        const intervalSec = cfg.get<number>('refreshIntervalSec', 60);
+        const cliCfg = vscode.workspace.getConfiguration('magentoHelper.cli');
+        const cliEnabled = cliCfg.get<boolean>('enabled', true);
+        const sbCfg = vscode.workspace.getConfiguration('magentoHelper.cli.statusBar');
+        const enabled = sbCfg.get<boolean>('enabled', true);
+        const intervalSec = sbCfg.get<number>('refreshIntervalSec', 60);
 
         this.stopTimer();
 
-        if (!enabled) {
+        // Hide if CLI feature off, status bar off, or workspace is not a Magento project.
+        if (!cliEnabled || !enabled || !this.isMagentoProject()) {
             this.disposeItem();
             return;
         }

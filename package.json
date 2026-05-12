@@ -77,6 +77,16 @@
                 "category": "M2"
             },
             {
+                "command": "magentoHelper.cli.tailwindBuild",
+                "title": "Tailwind: npm run build",
+                "category": "M2"
+            },
+            {
+                "command": "magentoHelper.cli.tailwindWatch",
+                "title": "Tailwind: npm run watch",
+                "category": "M2"
+            },
+            {
                 "command": "magentoHelper.cli.refreshCatalog",
                 "title": "Refresh CLI Catalog",
                 "category": "M2"
@@ -451,6 +461,11 @@
                     ],
                     "description": "Directories (relative to workspace) to scan for Magento XML/PHP files"
                 },
+                "magentoHelper.cli.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Master switch for the M2-CLI integration (status bar + auto checks). Status bar is also auto-hidden when the workspace is not a Magento project."
+                },
                 "magentoHelper.cli.command": {
                     "type": "string",
                     "default": "bin/magento",
@@ -479,6 +494,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Show Magento deploy mode and maintenance status in the status bar."
+                },
+                "magentoHelper.tailwind.themePath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Theme path (workspace-relative or absolute) used by the Tailwind build/watch commands. Either a theme root (e.g. 'app/design/frontend/Vendor/theme') or the tailwind dir itself. Empty = prompt and remember on first run."
                 },
                 "magentoHelper.cli.statusBar.refreshIntervalSec": {
                     "type": "number",

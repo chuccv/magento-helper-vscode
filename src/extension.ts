@@ -17,10 +17,33 @@ import { CliStatusBar } from './cli/cliStatusBar';
 import { showRunPicker, showFavoritePicker, runCommandByName } from './cli/cliCommandPicker';
 import { refreshCatalog, CORE_COMMANDS } from './cli/cliCatalog';
 import { getCliOutputChannel } from './cli/cliOutputChannel';
+import { runTailwind } from './cli/cliTailwind';
 
 const CLI_CMD_PREFIX = 'magentoHelper.cli.cmd:';
 
 const CACHE_VERSION = 1;
+
+// Detect a Magento 2 project by the presence of any well-known marker file.
+function isMagentoProject(): boolean {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders || folders.length === 0) return false;
+    const markers = [
+        ['app', 'etc', 'di.xml'],
+        ['bin', 'magento'],
+        ['app', 'etc', 'config.php'],
+    ];
+    for (const folder of folders) {
+        const root = folder.uri.fsPath;
+        for (const parts of markers) {
+            try {
+                if (fs.existsSync(path.join(root, ...parts))) return true;
+            } catch {
+                // ignore
+            }
+        }
+    }
+    return false;
+}
 
 export function activate(context: vscode.ExtensionContext) {
     const layoutIndex = new LayoutIndex();
@@ -153,11 +176,20 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Magento CLI integration (independent of indexing)
+    // Magento CLI integration (independent of indexing).
+    // Only mount the status bar if this workspace looks like a Magento project
+    // AND the user has the CLI feature enabled.
     const cliExecutor = new CliExecutor();
     const cliStatusBar = new CliStatusBar(cliExecutor);
-    cliStatusBar.start(context);
+    cliStatusBar.start(context, () => isMagentoProject());
     context.subscriptions.push(cliStatusBar);
+    // Re-evaluate gating when the toggle changes or workspace folders change.
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration('magentoHelper.cli.enabled')) cliStatusBar.reevaluate();
+        }),
+        vscode.workspace.onDidChangeWorkspaceFolders(() => cliStatusBar.reevaluate())
+    );
 
     // Providers
     context.subscriptions.push(
@@ -206,6 +238,8 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('magentoHelper.cli.runSilent', () => showRunPicker(context, cliExecutor, 'silent')),
         vscode.commands.registerCommand('magentoHelper.cli.runFavoriteSilent', () => showFavoritePicker(context, cliExecutor, 'silent')),
         vscode.commands.registerCommand('magentoHelper.cli.openLog', () => getCliOutputChannel().show(true)),
+        vscode.commands.registerCommand('magentoHelper.cli.tailwindBuild', () => runTailwind('build')),
+        vscode.commands.registerCommand('magentoHelper.cli.tailwindWatch', () => runTailwind('watch')),
         ...CORE_COMMANDS.map(c =>
             vscode.commands.registerCommand(CLI_CMD_PREFIX + c.name,
                 () => runCommandByName(context, cliExecutor, c.name))

@@ -12,6 +12,8 @@ import { XmlClassRefIndex } from './xmlClassRefIndex';
 import { PhpUsageLensProvider } from './phpUsageLens';
 import { generateUrnCatalog } from './urnCatalog';
 import { ConfigPathIndex } from './configPathIndex';
+import { ModuleIndex } from './moduleIndex';
+import { ModuleDefinitionProvider } from './moduleDefinitionProvider';
 import { CliExecutor } from './cli/cliExecutor';
 import { CliStatusBar } from './cli/cliStatusBar';
 import { showRunPicker, showFavoritePicker, runCommandByName } from './cli/cliCommandPicker';
@@ -73,6 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
     const pluginIndex = new PluginIndex();
     const refIndex = new XmlClassRefIndex();
     const configPathIndex = new ConfigPathIndex();
+    const moduleIndex = new ModuleIndex();
 
     // Status bar: shows indexing state + counts
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -100,6 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
                 plugin: pluginIndex.serialize(),
                 ref: refIndex.serialize(),
                 configPath: configPathIndex.serialize(),
+                module: moduleIndex.serialize(),
             });
             fs.writeFileSync(cachePath, data, 'utf8');
         } catch {
@@ -119,6 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
             pluginIndex.deserialize(data.plugin);
             refIndex.deserialize(data.ref);
             if (data.configPath) configPathIndex.deserialize(data.configPath);
+            if (data.module) moduleIndex.deserialize(data.module);
             indexedAt = data.indexedAt ?? Date.now();
             return true;
         } catch {
@@ -160,7 +165,8 @@ export function activate(context: vscode.ExtensionContext) {
                 routesIndex.build(),
                 pluginIndex.build(),
                 refIndex.build(),
-                configPathIndex.build()
+                configPathIndex.build(),
+                moduleIndex.build()
             ]);
             indexedAt = Date.now();
             stale = false;
@@ -183,6 +189,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (p.endsWith('.xml') && (p.includes('/layout/') || p.includes('/page_layout/') ||
             p.endsWith('/di.xml') || p.endsWith('/routes.xml') || p.endsWith('/events.xml') ||
             p.endsWith('/webapi.xml') || p.endsWith('/system.xml') || p.endsWith('/acl.xml'))) return true;
+        if (p.endsWith('registration.php')) return true;
         if (p.endsWith('.php')) return true;
         if (p.endsWith('.phtml')) return true;
         return false;
@@ -262,6 +269,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.languages.registerCodeLensProvider(
             { language: 'php' },
             new PhpUsageLensProvider(refIndex)
+        ),
+        vscode.languages.registerDefinitionProvider(
+            [{ language: 'php' }, { language: 'xml' }],
+            new ModuleDefinitionProvider(moduleIndex)
         )
     );
 
